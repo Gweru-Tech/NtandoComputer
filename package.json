@@ -1,0 +1,138 @@
+{
+  "name": "ntando-computer",
+  "version": "1.0.0",
+  "description": "🚀 The Ultimate App Deployment Platform - Deploy apps with free custom domains and forever hosting",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend && npm run build:cli",
+    "build:frontend": "echo 'Frontend is already built with HTML/CSS/JS'",
+    "build:backend": "cd backend && npm run build",
+    "build:cli": "cd cli && npm run build",
+    "deploy": "./scripts/deploy.sh",
+    "deploy:render": "./scripts/deploy.sh render",
+    "deploy:docker": "./scripts/deploy.sh docker",
+    "deploy:local": "./scripts/deploy.sh local",
+    "install:all": "npm install && cd backend && npm install && cd ../cli && npm install",
+    "test": "npm run test:backend && npm run test:cli",
+    "test:backend": "cd backend && npm test",
+    "test:cli": "cd cli && npm test",
+    "lint": "npm run lint:backend && npm run lint:cli",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:cli": "cd cli && npm run lint",
+    "clean": "rm -rf node_modules backend/node_modules cli/node_modules dist build",
+    "docker:build": "docker build -t ntando-computer .",
+    "docker:run": "docker run -p 3000:3000 ntando-computer",
+    "docker:compose": "docker-compose up -d",
+    "docker:compose:down": "docker-compose down",
+    "setup": "chmod +x scripts/deploy.sh && npm run install:all && cp .env.example .env",
+    "postinstall": "cd backend && npm install && cd ../cli && npm install",
+    "pm2:start": "pm2 start backend/ecosystem.config.js",
+    "pm2:stop": "pm2 stop ntando-computer",
+    "pm2:restart": "pm2 restart ntando-computer",
+    "pm2:logs": "pm2 logs ntando-computer",
+    "prod": "NODE_ENV=production npm start",
+    "watch": "concurrently &quot;npm run watch:backend&quot; &quot;npm run watch:frontend&quot;",
+    "watch:backend": "cd backend && npm run dev",
+    "watch:frontend": "echo 'Frontend files are static - no watch needed'",
+    "docs:dev": "cd docs && npm run dev",
+    "docs:build": "cd docs && npm run build",
+    "release": "npm run build && npm run test && npm version patch && npm publish",
+    "health": "curl -f http://localhost:3000/api/health || exit 1"
+  },
+  "keywords": [
+    "deployment",
+    "hosting",
+    "domains",
+    "render",
+    "web-apps",
+    "static-sites",
+    "react",
+    "vue",
+    "angular",
+    "nodejs",
+    "free-hosting",
+    "custom-domains",
+    "forever-hosting",
+    "cli",
+    "platform",
+    "saas",
+    "developer-tools",
+    "continuous-deployment",
+    "serverless"
+  ],
+  "author": {
+    "name": "Ntando Computer Team",
+    "email": "team@ntando-computer.com",
+    "url": "https://ntando-computer.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ntando-computer/platform.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ntando-computer/platform/issues"
+  },
+  "homepage": "https://ntando-computer.com",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "nodemon": "^3.0.1",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.47.0",
+    "prettier": "^3.0.2",
+    "husky": "^8.0.3",
+    "lint-staged": "^14.0.1",
+    "jest": "^29.6.4",
+    "supertest": "^6.3.3"
+  },
+  "dependencies": {
+    "pm2": "^5.3.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm test"
+    }
+  },
+  "lint-staged": {
+    "backend/**/*.{js,json}": [
+      "cd backend && npm run lint",
+      "git add"
+    ],
+    "cli/**/*.{js,json}": [
+      "cd cli && npm run lint", 
+      "git add"
+    ],
+    "*.{js,json,md}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "files": [
+    "index.html",
+    "styles.css", 
+    "script.js",
+    "backend/",
+    "cli/",
+    "scripts/",
+    "render.yaml",
+    "docker-compose.yml",
+    "Dockerfile",
+    "README.md",
+    "LICENSE"
+  ],
+  "config": {
+    "port": 3000,
+    "api_version": "v1"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/ntando-computer"
+  }
+}

@@ -1,0 +1,60 @@
+services:
+  # Main web service
+  - type: web
+    name: ntando-computer
+    env: node
+    plan: starter
+    buildCommand: "npm install && cd backend && npm install"
+    startCommand: "cd backend && npm start"
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        value: mongodb://ntando:password@ds123456.mlab.com:23456/ntando-computer
+      - key: RENDER_API_KEY
+        sync: false
+    disk:
+      name: ntando-storage
+      mountPath: /workspace/uploads
+      sizeGB: 10
+
+  # Background worker for deployment processing
+  - type: worker
+    name: ntando-deployment-worker
+    env: node
+    plan: starter
+    buildCommand: "cd backend && npm install"
+    startCommand: "cd backend && node worker.js"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: REDIS_URL
+        fromDatabase:
+          name: ntando-redis
+          property: connectionString
+
+databases:
+  # MongoDB for user data and deployments
+  - name: ntando-mongodb
+    databaseName: ntando_computer
+    user: ntando
+
+  # Redis for job queue and caching
+  - name: ntando-redis
+    plan: starter
+
+# Static site hosting for deployed apps
+staticSites:
+  - name: ntando-deployed-sites
+    path: .
+    buildCommand: "echo 'Static site ready'"
+    publishDir: .
+    domains:
+      - "*.ntl.cloud"
+      - "*.ntando.app"
+      - "*.deploy.live"

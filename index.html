@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ntando Computer - Deploy Apps with Free Custom Domains</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-rocket"></i>
+                <span>Ntando Computer</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#dashboard" class="nav-link">Dashboard</a></li>
+                <li><a href="#deploy" class="nav-link">Deploy</a></li>
+                <li><a href="#domains" class="nav-link">Domains</a></li>
+                <li><a href="#analytics" class="nav-link">Analytics</a></li>
+                <li><a href="#settings" class="nav-link">Settings</a></li>
+                <li><button class="btn-primary">Sign In</button></li>
+            </ul>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">Deploy Your Apps in Seconds</h1>
+                <p class="hero-subtitle">Get a free custom domain and permanent hosting. Deploy HTML, React, Vue, Node.js, and more with one click.</p>
+                <div class="hero-buttons">
+                    <button class="btn-primary btn-large" onclick="showDeployModal()">
+                        <i class="fas fa-upload"></i> Start Deploying
+                    </button>
+                    <button class="btn-secondary btn-large" onclick="scrollToSection('features')">
+                        <i class="fas fa-play"></i> Watch Demo
+                    </button>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <h3>10K+</h3>
+                        <p>Apps Deployed</p>
+                    </div>
+                    <div class="stat">
+                        <h3>99.9%</h3>
+                        <p>Uptime</p>
+                    </div>
+                    <div class="stat">
+                        <h3>∞</h3>
+                        <p>Forever Hosting</p>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="deployment-animation">
+                    <div class="code-editor">
+                        <div class="editor-header">
+                            <div class="editor-buttons">
+                                <span class="btn-red"></span>
+                                <span class="btn-yellow"></span>
+                                <span class="btn-green"></span>
+                            </div>
+                        </div>
+                        <div class="editor-content">
+                            <pre><code>ntando deploy my-app
+✓ Building project...
+✓ Optimizing assets...
+✓ Configuring domain...
+✓ Deploying to Render...
+🚀 Live at: my-awesome-app.ntl.cloud</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Everything You Need to Deploy</h2>
+                <p class="section-subtitle">Powerful features that make app deployment simple and reliable</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h3>Free Custom Domains</h3>
+                    <p>Get a unique, powerful domain name for your project. Your-app.ntl.cloud or connect your own custom domain.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-infinity"></i>
+                    </div>
+                    <h3>Permanent Hosting</h3>
+                    <p>Your apps stay online forever. Built with redundancy and automatic backups to ensure 99.9% uptime.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3>Instant Deployment</h3>
+                    <p>Deploy in seconds with our optimized pipeline. Support for HTML, React, Vue, Angular, Node.js, and more.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>SSL Certificates</h3>
+                    <p>Free SSL certificates for all deployments. Your sites are secure by default with HTTPS.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Real-time Analytics</h3>
+                    <p>Monitor your app performance with detailed analytics, visitor insights, and performance metrics.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Team Collaboration</h3>
+                    <p>Work together with your team. Share projects, manage permissions, and collaborate seamlessly.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Preview -->
+    <section id="dashboard" class="dashboard-preview">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Powerful Dashboard</h2>
+                <p class="section-subtitle">Manage all your deployments from one place</p>
+            </div>
+            <div class="dashboard-interface">
+                <div class="sidebar">
+                    <div class="user-profile">
+                        <img src="https://picsum.photos/seed/user/40/40.jpg" alt="User">
+                        <div class="user-info">
+                            <h4>John Developer</h4>
+                            <p>Free Plan</p>
+                        </div>
+                    </div>
+                    <ul class="sidebar-menu">
+                        <li class="active"><i class="fas fa-home"></i> Overview</li>
+                        <li><i class="fas fa-folder"></i> Projects</li>
+                        <li><i class="fas fa-globe"></i> Domains</li>
+                        <li><i class="fas fa-chart-bar"></i> Analytics</li>
+                        <li><i class="fas fa-cog"></i> Settings</li>
+                    </ul>
+                </div>
+                <div class="main-content">
+                    <div class="dashboard-header">
+                        <h3>Dashboard Overview</h3>
+                        <button class="btn-primary" onclick="showDeployModal()">
+                            <i class="fas fa-plus"></i> New Deployment
+                        </button>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h4>12</h4>
+                            <p>Total Deployments</p>
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <div class="stat-card">
+                            <h4>8.5K</h4>
+                            <p>Total Visitors</p>
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-card">
+                            <h4>99.9%</h4>
+                            <p>Uptime</p>
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-card">
+                            <h4>3.2s</h4>
+                            <p>Avg Load Time</p>
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                    </div>
+                    <div class="recent-deployments">
+                        <h4>Recent Deployments</h4>
+                        <div class="deployment-list">
+                            <div class="deployment-item">
+                                <div class="deployment-info">
+                                    <h5>my-portfolio</h5>
+                                    <p>portfolio.john.ntl.cloud</p>
+                                </div>
+                                <div class="deployment-status">
+                                    <span class="status-badge success">Live</span>
+                                    <span class="deployment-time">2 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="deployment-item">
+                                <div class="deployment-info">
+                                    <h5>react-dashboard</h5>
+                                    <p>dashboard.john.ntl.cloud</p>
+                                </div>
+                                <div class="deployment-status">
+                                    <span class="status-badge success">Live</span>
+                                    <span class="deployment-time">1 day ago</span>
+                                </div>
+                            </div>
+                            <div class="deployment-item">
+                                <div class="deployment-info">
+                                    <h5>mobile-app</h5>
+                                    <p>app.john.ntl.cloud</p>
+                                </div>
+                                <div class="deployment-status">
+                                    <span class="status-badge deploying">Deploying</span>
+                                    <span class="deployment-time">Just now</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Supported Technologies -->
+    <section class="technologies">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Support for All Modern Tech</h2>
+                <p class="section-subtitle">Deploy any web application with confidence</p>
+            </div>
+            <div class="tech-grid">
+                <div class="tech-category">
+                    <h3><i class="fas fa-code"></i> Frontend</h3>
+                    <div class="tech-items">
+                        <span class="tech-tag">React</span>
+                        <span class="tech-tag">Vue.js</span>
+                        <span class="tech-tag">Angular</span>
+                        <span class="tech-tag">Svelte</span>
+                        <span class="tech-tag">Next.js</span>
+                        <span class="tech-tag">Nuxt.js</span>
+                        <span class="tech-tag">HTML/CSS/JS</span>
+                        <span class="tech-tag">Tailwind CSS</span>
+                    </div>
+                </div>
+                <div class="tech-category">
+                    <h3><i class="fas fa-server"></i> Backend</h3>
+                    <div class="tech-items">
+                        <span class="tech-tag">Node.js</span>
+                        <span class="tech-tag">Express</span>
+                        <span class="tech-tag">Python</span>
+                        <span class="tech-tag">Django</span>
+                        <span class="tech-tag">Flask</span>
+                        <span class="tech-tag">Go</span>
+                        <span class="tech-tag">Ruby</span>
+                        <span class="tech-tag">PHP</span>
+                    </div>
+                </div>
+                <div class="tech-category">
+                    <h3><i class="fas fa-database"></i> Database</h3>
+                    <div class="tech-items">
+                        <span class="tech-tag">PostgreSQL</span>
+                        <span class="tech-tag">MongoDB</span>
+                        <span class="tech-tag">MySQL</span>
+                        <span class="tech-tag">Redis</span>
+                        <span class="tech-tag">SQLite</span>
+                        <span class="tech-tag">Supabase</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Deploy Your First App?</h2>
+                <p>Join thousands of developers deploying with Ntando Computer. Free forever with unlimited deployments.</p>
+                <div class="cta-buttons">
+                    <button class="btn-primary btn-large" onclick="showDeployModal()">
+                        <i class="fas fa-rocket"></i> Start Free Deployment
+                    </button>
+                    <button class="btn-secondary btn-large">
+                        <i class="fab fa-github"></i> Deploy from GitHub
+                    </button>
+                </div>
+                <p class="cta-note">No credit card required • Free custom domains • Forever hosting</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <i class="fas fa-rocket"></i>
+                        <span>Ntando Computer</span>
+                    </div>
+                    <p>The ultimate platform for app deployment with free custom domains and permanent hosting.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">Pricing</a></li>
+                        <li><a href="#">API</a></li>
+                        <li><a href="#">Documentation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Community</a></li>
+                        <li><a href="#">Status</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Ntando Computer. All rights reserved.</p>
+                <p>Built with ❤️ for developers worldwide</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Deploy Modal -->
+    <div id="deployModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Deploy Your App</h3>
+                <button class="close-btn" onclick="closeDeployModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="deploy-tabs">
+                    <button class="tab-btn active" onclick="switchTab('upload')">Upload Files</button>
+                    <button class="tab-btn" onclick="switchTab('github')">GitHub Repository</button>
+                    <button class="tab-btn" onclick="switchTab('cli')">Command Line</button>
+                </div>
+                
+                <div id="uploadTab" class="tab-content active">
+                    <div class="upload-area" id="uploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h4>Drag & Drop your files here</h4>
+                        <p>or click to browse</p>
+                        <input type="file" id="fileInput" multiple accept=".zip,.html,.js,.css" style="display: none;">
+                    </div>
+                </div>
+                
+                <div id="githubTab" class="tab-content">
+                    <div class="github-input">
+                        <label>GitHub Repository URL</label>
+                        <input type="text" placeholder="https://github.com/username/repository">
+                        <label>Branch</label>
+                        <input type="text" value="main">
+                        <label>Build Command</label>
+                        <input type="text" placeholder="npm run build (optional)">
+                        <label>Output Directory</label>
+                        <input type="text" placeholder="dist (optional)">
+                    </div>
+                </div>
+                
+                <div id="cliTab" class="tab-content">
+                    <div class="cli-instructions">
+                        <h4>Deploy using our CLI</h4>
+                        <div class="code-block">
+                            <pre><code># Install the CLI
+npm install -g ntando-cli
+
+# Login to your account
+ntando login
+
+# Deploy your project
+ntando deploy
+
+# Deploy with custom domain
+ntando deploy --domain my-awesome-app.ntl.cloud</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="domain-config">
+                    <h4>Choose Your Free Domain</h4>
+                    <div class="domain-input-group">
+                        <input type="text" id="projectName" placeholder="my-awesome-app">
+                        <select>
+                            <option>.ntl.cloud</option>
+                            <option>.ntando.app</option>
+                            <option>.deploy.live</option>
+                        </select>
+                    </div>
+                    <p class="domain-suggestion">Available domains are checked in real-time</p>
+                </div>
+                
+                <div class="deploy-settings">
+                    <h4>Deployment Settings</h4>
+                    <div class="setting-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked>
+                            <span class="checkmark"></span>
+                            Enable automatic deployments from git
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked>
+                            <span class="checkmark"></span>
+                            Optimize assets and images
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked>
+                            <span class="checkmark"></span>
+                            Enable SSL certificate
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDeployModal()">Cancel</button>
+                <button class="btn-primary" onclick="startDeployment()">
+                    <i class="fas fa-rocket"></i> Deploy Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
