@@ -67,22 +67,7 @@ COPY index.html styles.css script.js ./
 RUN npm install -g ./cli
 
 # Create PM2 ecosystem file
-RUN echo '{
-  "apps": [{
-    "name": "ntando-computer",
-    "script": "backend/server.js",
-    "instances": "max",
-    "exec_mode": "cluster",
-    "env": {
-      "NODE_ENV": "production",
-      "PORT": 3000
-    },
-    "error_file": "/app/logs/err.log",
-    "out_file": "/app/logs/out.log",
-    "log_file": "/app/logs/combined.log",
-    "time": true
-  }]
-}' > ecosystem.config.js
+RUN echo '{\n  "apps": [{\n    "name": "ntando-computer",\n    "script": "backend/server.js",\n    "instances": "max",\n    "exec_mode": "cluster",\n    "env": {\n      "NODE_ENV": "production",\n      "PORT": 3000\n    },\n    "error_file": "/app/logs/err.log",\n    "out_file": "/app/logs/out.log",\n    "log_file": "/app/logs/combined.log",\n    "time": true\n  }]\n}' > ecosystem.config.js
 
 # Create logs directory
 RUN mkdir -p logs && chown -R nodejs:nodejs logs

@@ -1,0 +1,46 @@
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies for image processing
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    curl \
+    unzip
+
+# Copy package files
+COPY package*.json ./
+COPY backend/package*.json ./backend/
+
+# Install dependencies
+RUN npm ci --only=production
+RUN cd backend && npm ci --only=production
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p uploads logs
+
+# Install CLI globally
+RUN npm install -g ./cli
+
+# Build CLI
+RUN cd cli && npm run build
+
+# Expose port
+EXPOSE 3000
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Start the application
+CMD ["node", "backend/server.js"]
