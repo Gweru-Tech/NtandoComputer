@@ -1,0 +1,34 @@
+services:
+  # Main web service
+  - type: web
+    name: ntando-computer
+    env: node
+    plan: starter
+    runtime: node
+    region: oregon
+    buildCommand: "npm install && cd backend && npm install"
+    startCommand: "node backend/server.js"
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        fromDatabase:
+          name: ntando-mongodb
+          property: connectionString
+    disk:
+      name: ntando-storage
+      mountPath: /app/backend/uploads
+      sizeGB: 5
+
+databases:
+  # MongoDB for user data and deployments
+  - name: ntando-mongodb
+    databaseName: ntando_computer
+    user: ntando
+    plan: free

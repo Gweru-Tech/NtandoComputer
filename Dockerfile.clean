@@ -1,0 +1,40 @@
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install only essential system packages
+RUN apk add --no-cache \
+    curl \
+    unzip
+
+# Copy package files first for better caching
+COPY package*.json ./
+COPY backend/package*.json ./backend/
+
+# Install dependencies
+RUN npm ci --only=production --silent
+RUN cd backend && npm ci --only=production --silent
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p backend/uploads logs
+
+# Make scripts executable
+RUN chmod +x start.sh 2>/dev/null || true
+
+# Expose port (Render.com uses port 10000)
+EXPOSE 10000
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=10000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:10000/api/health || exit 1
+
+# Start the application
+CMD ["node", "backend/server.js"]
