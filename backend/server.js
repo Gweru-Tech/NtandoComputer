@@ -3,34 +3,30 @@ const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs').promises;
-const axios = require('axios');
-const archiver = require('archiver');
-const unzipper = require('unzipper');
 const { v4: uuidv4 } = require('uuid');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const mongoose = require('mongoose');
-const cron = require('cron');
-const sharp = require('sharp');
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: false
+}));
 app.use(cors({
-    origin: ['http://localhost:8050', 'https://ntando-computer.onrender.com'],
+    origin: true,
     credentials: true
 }));
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again later.'
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: 'Too many requests, please try again later.'
 });
 app.use('/api/', limiter);
 
@@ -41,7 +37,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // File upload configuration
 const storage = multer.diskStorage({
     destination: async (req, file, cb) => {
-        const uploadDir = path.join(__dirname, 'uploads', req.deploymentId);
+        const uploadDir = path.join(__dirname, 'uploads', req.deploymentId || 'temp');
         await fs.mkdir(uploadDir, { recursive: true });
         cb(null, uploadDir);
     },
@@ -52,20 +48,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
+    limits: { fileSize: 100 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-        const allowedTypes = [
-            'text/html',
-            'application/javascript',
-            'text/css',
-            'application/zip',
-            'application/x-zip-compressed',
-            'image/jpeg',
-            'image/png',
-            'image/svg+xml',
-            'image/webp'
-        ];
-        
+        const allowedTypes = ['text/html', 'application/javascript', 'text/css', 'application/zip'];
         if (allowedTypes.includes(file.type) || 
             file.originalname.endsWith('.zip') || 
             file.originalname.endsWith('.html') || 
@@ -78,45 +63,9 @@ const upload = multer({
     }
 });
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:ntando-computer', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
-
-// Database schemas
-const userSchema = new mongoose.Schema({
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    plan: { type: String, default: 'free' },
-    deployments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Deployment' }],
-    createdAt: { type: Date, default: Date.now }
-});
-
-const deploymentSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    projectName: { type: String, required: true },
-    domain: { type: String, required: true, unique: true },
-    repositoryUrl: String,
-    branch: { type: String, default: 'main' },
-    buildCommand: String,
-    outputDir: { type: String, default: 'dist' },
-    status: { type: String, enum: ['building', 'deploying', 'live', 'error'], default: 'building' },
-    renderServiceId: String,
-    deploymentUrl: String,
-    sslEnabled: { type: Boolean, default: true },
-    customDomain: String,
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
-    metrics: {
-        visitors: { type: Number, default: 0 },
-        bandwidth: { type: Number, default: 0 },
-        uptime: { type: Number, default: 100 }
-    }
-});
-
-const User = mongoose.model('User', userSchema);
-const Deployment = mongoose.model('Deployment', deploymentSchema);
+// In-memory storage for demo (replace with real database)
+const users = [];
+const deployments = [];
 
 // JWT middleware
 const authenticateToken = (req, res, next) => {
@@ -127,7 +76,7 @@ const authenticateToken = (req, res, next) => {
         return res.status(401).json({ error: 'Access token required' });
     }
 
-    jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET || 'default-secret-key', (err, user) => {
         if (err) return res.status(403).json({ error: 'Invalid token' });
         req.user = user;
         next();
@@ -136,94 +85,19 @@ const authenticateToken = (req, res, next) => {
 
 // Domain availability checker
 async function checkDomainAvailability(domain) {
-    try {
-        const existingDeployment = await Deployment.findOne({ domain });
-        return !existingDeployment;
-    } catch (error) {
-        console.error('Error checking domain availability:', error);
-        return false;
-    }
+    // Simulate domain check (in production, this would query your database)
+    const existing = deployments.find(d => d.domain === domain);
+    return !existing;
 }
-
-// Render.com API integration
-class RenderAPIClient {
-    constructor() {
-        this.apiKey = process.env.RENDER_API_KEY;
-        this.baseURL = 'https://api.render.com/v1';
-    }
-
-    async createStaticSite(projectName, repoUrl = null) {
-        try {
-            const payload = {
-                name: projectName,
-                serviceId: `srv-${uuidv4()}`,
-                type: 'static_site',
-                repo: repoUrl || 'https://github.com/ntando-computer/template-static-site',
-                branch: 'main',
-                buildCommand: 'npm run build',
-                publishDir: './dist',
-                envVars: [
-                    { key: 'NODE_ENV', value: 'production' }
-                ]
-            };
-
-            const response = await axios.post(`${this.baseURL}/services`, payload, {
-                headers: {
-                    'Authorization': `Bearer ${this.apiKey}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            return response.data;
-        } catch (error) {
-            console.error('Render API error:', error.response?.data || error.message);
-            throw error;
-        }
-    }
-
-    async getServiceStatus(serviceId) {
-        try {
-            const response = await axios.get(`${this.baseURL}/services/${serviceId}`, {
-                headers: {
-                    'Authorization': `Bearer ${this.apiKey}`
-                }
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error getting service status:', error);
-            throw error;
-        }
-    }
-
-    async addCustomDomain(serviceId, domain) {
-        try {
-            const payload = {
-                customDomain: domain
-            };
-
-            const response = await axios.post(`${this.baseURL}/services/${serviceId}/custom-domains`, payload, {
-                headers: {
-                    'Authorization': `Bearer ${this.apiKey}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            return response.data;
-        } catch (error) {
-            console.error('Error adding custom domain:', error);
-            throw error;
-        }
-    }
-}
-
-const renderClient = new RenderAPIClient();
 
 // Routes
 app.get('/', (req, res) => {
     res.json({ 
         message: '🚀 Ntando Computer API',
         version: '1.0.0',
-        status: 'running'
+        status: 'running',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
     });
 });
 
@@ -236,21 +110,28 @@ app.post('/api/auth/register', async (req, res) => {
             return res.status(400).json({ error: 'Email and password required' });
         }
 
-        const existingUser = await User.findOne({ email });
+        const existingUser = users.find(u => u.email === email);
         if (existingUser) {
             return res.status(400).json({ error: 'User already exists' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({ email, password: hashedPassword });
-        await user.save();
+        const user = {
+            id: uuidv4(),
+            email,
+            password: hashedPassword,
+            plan: 'free',
+            createdAt: new Date()
+        };
+        
+        users.push(user);
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'your-secret-key');
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'default-secret-key');
         
         res.status(201).json({ 
             message: 'User created successfully',
             token,
-            user: { id: user._id, email: user.email, plan: user.plan }
+            user: { id: user.id, email: user.email, plan: user.plan }
         });
     } catch (error) {
         console.error('Registration error:', error);
@@ -262,7 +143,7 @@ app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const user = await User.findOne({ email });
+        const user = users.find(u => u.email === email);
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
@@ -272,12 +153,12 @@ app.post('/api/auth/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'your-secret-key');
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'default-secret-key');
         
         res.json({ 
             message: 'Login successful',
             token,
-            user: { id: user._id, email: user.email, plan: user.plan }
+            user: { id: user.id, email: user.email, plan: user.plan }
         });
     } catch (error) {
         console.error('Login error:', error);
@@ -290,9 +171,9 @@ app.post('/api/deploy', authenticateToken, upload.array('files', 50), async (req
     try {
         const { projectName, domain, repositoryUrl, buildCommand, outputDir } = req.body;
         
-        // Generate deployment ID
-        const deploymentId = uuidv4();
-        req.deploymentId = deploymentId;
+        if (!projectName || !domain) {
+            return res.status(400).json({ error: 'Project name and domain are required' });
+        }
 
         // Check domain availability
         const isAvailable = await checkDomainAvailability(domain);
@@ -300,25 +181,42 @@ app.post('/api/deploy', authenticateToken, upload.array('files', 50), async (req
             return res.status(400).json({ error: 'Domain not available' });
         }
 
+        // Generate deployment ID
+        const deploymentId = uuidv4();
+        req.deploymentId = deploymentId;
+
         // Create deployment record
-        const deployment = new Deployment({
+        const deployment = {
+            id: deploymentId,
             userId: req.user.userId,
             projectName,
             domain,
             repositoryUrl,
             buildCommand,
             outputDir,
-            status: 'building'
-        });
+            status: 'building',
+            createdAt: new Date(),
+            metrics: {
+                visitors: 0,
+                bandwidth: 0,
+                uptime: 100
+            }
+        };
         
-        await deployment.save();
+        deployments.push(deployment);
 
-        // Start deployment process
-        processDeployment(deployment, req.files);
+        // Simulate deployment process
+        setTimeout(() => {
+            const dep = deployments.find(d => d.id === deploymentId);
+            if (dep) {
+                dep.status = 'live';
+                dep.deploymentUrl = `https://${domain}`;
+            }
+        }, 15000);
 
         res.json({ 
             message: 'Deployment started',
-            deploymentId: deployment._id,
+            deploymentId: deployment.id,
             domain,
             estimatedTime: '15-30 seconds'
         });
@@ -328,153 +226,15 @@ app.post('/api/deploy', authenticateToken, upload.array('files', 50), async (req
     }
 });
 
-async function processDeployment(deployment, files) {
-    try {
-        // Update status to deploying
-        deployment.status = 'deploying';
-        await deployment.save();
-
-        // If files are uploaded, create a temporary repository
-        if (files && files.length > 0) {
-            await processFileUpload(deployment._id, files);
-        }
-
-        // Create service on Render
-        const renderService = await renderClient.createStaticSite(
-            deployment.projectName,
-            deployment.repositoryUrl
-        );
-
-        // Update deployment with Render service info
-        deployment.renderServiceId = renderService.id;
-        deployment.deploymentUrl = renderService.url;
-        await deployment.save();
-
-        // Add custom domain if requested
-        if (deployment.domain && !deployment.domain.includes('ntl.cloud')) {
-            await renderClient.addCustomDomain(renderService.id, deployment.domain);
-        }
-
-        // Monitor deployment status
-        await monitorDeployment(deployment);
-
-    } catch (error) {
-        console.error('Deployment processing error:', error);
-        deployment.status = 'error';
-        await deployment.save();
-    }
-}
-
-async function processFileUpload(deploymentId, files) {
-    const uploadDir = path.join(__dirname, 'uploads', deploymentId);
-    
-    // If zip file, extract it
-    const zipFile = files.find(file => file.originalname.endsWith('.zip'));
-    if (zipFile) {
-        await extractZip(zipFile.path, uploadDir);
-    }
-
-    // Optimize images
-    await optimizeImages(uploadDir);
-}
-
-async function extractZip(zipPath, extractPath) {
-    return new Promise((resolve, reject) => {
-        fs.createReadStream(zipPath)
-            .pipe(unzipper.Parse())
-            .on('entry', async (entry) => {
-                const fileName = entry.path;
-                const type = entry.type;
-                
-                if (type === 'File') {
-                    const filePath = path.join(extractPath, fileName);
-                    await fs.mkdir(path.dirname(filePath), { recursive: true });
-                    entry.pipe(fs.createWriteStream(filePath));
-                } else {
-                    entry.autodrain();
-                }
-            })
-            .on('finish', resolve)
-            .on('error', reject);
-    });
-}
-
-async function optimizeImages(directory) {
-    try {
-        const files = await fs.readdir(directory, { recursive: true });
-        
-        for (const file of files) {
-            const filePath = path.join(directory, file);
-            const stat = await fs.stat(filePath);
-            
-            if (stat.isFile() && /\.(jpg|jpeg|png|webp)$/i.test(file)) {
-                await sharp(filePath)
-                    .jpeg({ quality: 80, progressive: true })
-                    .png({ quality: 80, progressive: true })
-                    .toFile(filePath + '.optimized');
-                
-                await fs.rename(filePath + '.optimized', filePath);
-            }
-        }
-    } catch (error) {
-        console.error('Image optimization error:', error);
-    }
-}
-
-async function monitorDeployment(deployment) {
-    const maxAttempts = 30;
-    let attempts = 0;
-
-    const checkStatus = async () => {
-        try {
-            const service = await renderClient.getServiceStatus(deployment.renderServiceId);
-            
-            if (service.status === 'live' || service.status === 'ready') {
-                deployment.status = 'live';
-                deployment.deploymentUrl = service.url;
-                await deployment.save();
-                
-                // Send webhook notification
-                await sendDeploymentNotification(deployment, 'success');
-                
-            } else if (service.status === 'failed' || service.status === 'error') {
-                deployment.status = 'error';
-                await deployment.save();
-                
-                await sendDeploymentNotification(deployment, 'failed');
-                
-            } else if (attempts < maxAttempts) {
-                attempts++;
-                setTimeout(checkStatus, 5000);
-            } else {
-                deployment.status = 'error';
-                await deployment.save();
-            }
-        } catch (error) {
-            console.error('Status monitoring error:', error);
-            if (attempts < maxAttempts) {
-                attempts++;
-                setTimeout(checkStatus, 5000);
-            }
-        }
-    };
-
-    setTimeout(checkStatus, 5000);
-}
-
-async function sendDeploymentNotification(deployment, status) {
-    // Placeholder for webhook notifications
-    console.log(`Deployment ${deployment._id} ${status}`);
-}
-
 // Get user deployments
 app.get('/api/deployments', authenticateToken, async (req, res) => {
     try {
-        const deployments = await Deployment.find({ userId: req.user.userId })
-            .sort({ createdAt: -1 })
-            .limit(10);
+        const userDeployments = deployments
+            .filter(d => d.userId === req.user.userId)
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .slice(0, 10);
         
-        res.json(deployments);
+        res.json(userDeployments);
     } catch (error) {
         console.error('Error fetching deployments:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -484,10 +244,9 @@ app.get('/api/deployments', authenticateToken, async (req, res) => {
 // Get deployment details
 app.get('/api/deployments/:id', authenticateToken, async (req, res) => {
     try {
-        const deployment = await Deployment.findOne({ 
-            _id: req.params.id, 
-            userId: req.user.userId 
-        });
+        const deployment = deployments.find(d => 
+            d.id === req.params.id && d.userId === req.user.userId
+        );
         
         if (!deployment) {
             return res.status(404).json({ error: 'Deployment not found' });
@@ -503,21 +262,15 @@ app.get('/api/deployments/:id', authenticateToken, async (req, res) => {
 // Delete deployment
 app.delete('/api/deployments/:id', authenticateToken, async (req, res) => {
     try {
-        const deployment = await Deployment.findOne({ 
-            _id: req.params.id, 
-            userId: req.user.userId 
-        });
+        const index = deployments.findIndex(d => 
+            d.id === req.params.id && d.userId === req.user.userId
+        );
         
-        if (!deployment) {
+        if (index === -1) {
             return res.status(404).json({ error: 'Deployment not found' });
         }
 
-        // Delete from Render (implement API call)
-        // Delete uploaded files
-        const uploadDir = path.join(__dirname, 'uploads', deployment._id);
-        await fs.rmdir(uploadDir, { recursive: true });
-
-        await Deployment.findByIdAndDelete(req.params.id);
+        deployments.splice(index, 1);
         
         res.json({ message: 'Deployment deleted successfully' });
     } catch (error) {
@@ -529,10 +282,9 @@ app.delete('/api/deployments/:id', authenticateToken, async (req, res) => {
 // Analytics endpoint
 app.get('/api/analytics/:deploymentId', authenticateToken, async (req, res) => {
     try {
-        const deployment = await Deployment.findOne({ 
-            _id: req.params.deploymentId, 
-            userId: req.user.userId 
-        });
+        const deployment = deployments.find(d => 
+            d.id === req.params.deploymentId && d.userId === req.user.userId
+        );
         
         if (!deployment) {
             return res.status(404).json({ error: 'Deployment not found' });
@@ -560,14 +312,18 @@ app.get('/api/health', (req, res) => {
     res.json({ 
         status: 'healthy',
         timestamp: new Date().toISOString(),
-        uptime: process.uptime()
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development',
+        version: '1.0.0'
     });
 });
 
-// Cron jobs for maintenance
-cron.schedule('0 0 * * *', async () => {
-    console.log('Running daily maintenance...');
-    // Clean up old uploads, update metrics, etc.
+// Serve static files (frontend)
+app.use(express.static(path.join(__dirname, '../')));
+
+// Handle SPA routing
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../index.html'));
 });
 
 // Error handling middleware
@@ -576,22 +332,25 @@ app.use((error, req, res, next) => {
     res.status(500).json({ error: 'Internal server error' });
 });
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '../')));
+// Initialize uploads directory
+const initializeApp = async () => {
+    try {
+        const uploadsDir = path.join(__dirname, 'uploads');
+        await fs.mkdir(uploadsDir, { recursive: true });
+        console.log('📁 Uploads directory created');
+    } catch (error) {
+        console.error('Error creating uploads directory:', error);
+    }
+};
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`🚀 Ntando Computer API running on port ${PORT}`);
     console.log(`📊 Dashboard: http://localhost:${PORT}`);
-    console.log(`🔗 API Documentation: http://localhost:${PORT}/api/health`);
+    console.log(`🔗 API Health: http://localhost:${PORT}/api/health`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
     
-    // Create uploads directory if it doesn't exist
-    const fs = require('fs');
-    const path = require('path');
-    const uploadsDir = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-    }
+    await initializeApp();
 });
 
 module.exports = app;
