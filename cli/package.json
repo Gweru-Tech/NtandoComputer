@@ -1,0 +1,44 @@
+{
+  "name": "ntando-cli",
+  "version": "1.0.0",
+  "description": "Ntando Computer CLI - Deploy apps with free custom domains",
+  "main": "index.js",
+  "bin": {
+    "ntando": "./bin/ntando.js"
+  },
+  "scripts": {
+    "start": "node bin/ntando.js",
+    "test": "jest"
+  },
+  "keywords": [
+    "deployment",
+    "cli",
+    "hosting",
+    "domains",
+    "web-apps",
+    "ntando-computer"
+  ],
+  "author": "Ntando Computer Team",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "inquirer": "^9.2.10",
+    "chalk": "^5.3.0",
+    "ora": "^7.0.1",
+    "axios": "^1.5.0",
+    "fs-extra": "^11.1.1",
+    "archiver": "^6.0.1",
+    "dotenv": "^16.3.1",
+    "conf": "^11.0.2",
+    "update-notifier": "^7.0.0",
+    "boxen": "^7.1.1",
+    "figlet": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ntando-computer/cli.git"
+  }
+}
